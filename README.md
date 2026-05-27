@@ -27,4 +27,4 @@ If you find our work useful, please consider citing:
 
 ## License
 
-This project is released under the [MIT License](LICENSE).
+This project is released under the [License](LICENSE).
