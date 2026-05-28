@@ -17,10 +17,15 @@ This is the official implementation of the paper:
 If you find our work useful, please consider citing:
 
 ```bibtex
-@misc{sommer2026housecorr,
-  title         = {Category-Level 3D Correspondence in Camera Space via Morphable Object Priors},
-  author        = {Sommer, Leonhard and Jesslen, Artur and Sunagad, Basavaraj and Kortylewski, Adam},
-  year          = {2026},
+@misc{sommer2026categorylevel3dcorrespondencecamera,
+      title={Category-Level 3D Correspondence in Camera Space via Morphable Object Priors}, 
+      author={Leonhard Sommer and Artur Jesslen and Basavaraj Sunagad and Adam Kortylewski},
+      year={2026},
+      eprint={2605.28257},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2605.28257}, 
+}
 ```
 
 ---
