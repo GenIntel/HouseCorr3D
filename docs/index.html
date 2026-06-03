@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HouseCorr3D · Category-Level 3D Correspondence in Camera Space</title>
+<meta name="description" content="HouseCorr3D & Morpheus — the first large-scale benchmark and a morphable-prior method for monocular category-level 3D correspondence in camera space." />
+
+<!-- Social preview (replace assets/teaser.png once available) -->
+<meta property="og:title" content="Category-Level 3D Correspondence in Camera Space via Morphable Object Priors" />
+<meta property="og:description" content="HouseCorr3D: 178k images · 50 categories · 280 instances. Morpheus learns morphable priors so 3D correspondence emerges without supervision." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="assets/teaser.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ░░ Atmosphere ░░ -->
+<canvas id="mesh-canvas" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<!-- ░░ Nav ░░ -->
+<header class="nav" id="nav">
+  <a class="nav__brand" href="#top" aria-label="HouseCorr3D home">
+    <svg class="nav__mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path class="mk-stem" d="M8 7V25 M24 7V25" />
+      <path class="mk-link mk-link-a" d="M10.5 16H16.1" />
+      <path class="mk-link mk-link-b" d="M15.9 16H21.5" />
+      <circle cx="8" cy="7" r="2.1" class="mk-a" />
+      <circle cx="8" cy="16" r="2.1" class="mk-a" />
+      <circle cx="8" cy="25" r="2.1" class="mk-a" />
+      <circle cx="24" cy="7" r="2.1" class="mk-b" />
+      <circle cx="24" cy="16" r="2.1" class="mk-b" />
+      <circle cx="24" cy="25" r="2.1" class="mk-b" />
+    </svg>
+    <span class="nav__word">HouseCorr<span class="nav__sup">3D</span></span>
+  </a>
+  <nav class="nav__links" aria-label="Sections">
+    <a href="#task">Task</a>
+    <a href="#benchmark">Benchmark</a>
+    <a href="#method">Method</a>
+    <a href="#results">Results</a>
+    <a href="#cite">Cite</a>
+  </nav>
+  <div class="nav__actions">
+    <a class="btn btn--ghost" href="https://arxiv.org/abs/2605.28257" target="_blank" rel="noopener">arXiv</a>
+    <a class="btn btn--solid" href="https://github.com/GenIntel/HouseCorr3D" target="_blank" rel="noopener">Code</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ░░ HERO ░░ -->
+  <section class="hero">
+    <div class="hero__inner">
+      <h1 class="hero__title reveal">
+        Category-Level <span class="grad">3D&nbsp;Correspondence in&nbsp;Camera&nbsp;Space</span> via Morphable&nbsp;Object&nbsp;Priors
+      </h1>
+
+      <!--<p class="hero__lede reveal">
+        Pick a point on one object — find the same semantic point, in 3D, on <em>any</em> other
+        instance of its category. We show this can <strong>emerge without correspondence
+        supervision</strong> from a shared morphable prior, and release the first benchmark to
+        measure it.
+      </p>-->
+
+      <ul class="authors reveal" aria-label="Authors">
+        <li><a href="#" >Leonhard Sommer<sup class="aff">1,&#42;</sup></a></li>
+        <li><a href="#">Artur Jesslen<sup class="aff">1,&#42;</sup></a></li>
+        <li><a href="#">Basavaraj Sunagad<sup class="aff">2</sup></a></li>
+        <li><a href="#">Adam Kortylewski<sup class="aff">2</sup></a></li>
+      </ul>
+      <p class="affil reveal">
+        <span><sup>1</sup> University of Freiburg</span>
+        <span class="affil__sep">·</span>
+        <span><sup>2</sup> CISPA Helmholtz Center for Information Security</span>
+        <br />
+        <span class="affil__note"><sup>&#42;</sup> Equal contribution &nbsp;·&nbsp</span>
+      </p>
+
+      <div class="cta reveal">
+        <a class="btn btn--solid" href="https://arxiv.org/abs/2605.28257" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" class="btn__ic" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" /><path d="M15 2v5h5" /></svg>
+          arXiv
+        </a>
+        <a class="btn btn--ghost" href="https://github.com/GenIntel/HouseCorr3D" target="_blank" rel="noopener">
+          <svg class="btn__ic btn__ic--mono" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>
+          Code [Coming Soon]
+        </a>
+        <!-- TODO(user): replace with the real dataset download URL when public -->
+        <a class="btn btn--ghost" href="#" target="_blank" rel="noopener">
+          <svg class="btn__ic btn__ic--logo" viewBox="0 0 95 88" aria-hidden="true">
+            <path fill="#FFD21E" d="M47.21 76.5a34.75 34.75 0 1 0 0-69.5 34.75 34.75 0 0 0 0 69.5Z" />
+            <path fill="#FF9D0B" d="M81.96 41.75a34.75 34.75 0 1 0-69.5 0 34.75 34.75 0 0 0 69.5 0Zm-73.5 0a38.75 38.75 0 1 1 77.5 0 38.75 38.75 0 0 1-77.5 0Z" />
+            <path fill="#3A3B45" d="M58.5 32.3c1.28.44 1.78 3.06 3.07 2.38a5 5 0 1 0-6.76-2.07c.61 1.15 2.55-.72 3.7-.32ZM34.95 32.3c-1.28.44-1.79 3.06-3.07 2.38a5 5 0 1 1 6.76-2.07c-.61 1.15-2.56-.72-3.7-.32Z" />
+            <path fill="#FF323D" d="M46.96 56.29c9.83 0 13-8.76 13-13.26 0-2.34-1.57-1.6-4.09-.36-2.33 1.15-5.46 2.74-8.9 2.74-7.19 0-13-6.88-13-2.38s3.16 13.26 13 13.26Z" />
+            <path fill="#3A3B45" fill-rule="evenodd" clip-rule="evenodd" d="M39.43 54a8.7 8.7 0 0 1 5.3-4.49c.4-.12.81.57 1.24 1.28.4.68.82 1.37 1.24 1.37.45 0 .9-.68 1.33-1.35.45-.7.89-1.38 1.32-1.25a8.61 8.61 0 0 1 5 4.17c3.73-2.94 5.1-7.74 5.1-10.7 0-2.34-1.57-1.6-4.09-.36l-.14.07c-2.31 1.15-5.39 2.67-8.77 2.67s-6.45-1.52-8.77-2.67c-2.6-1.29-4.23-2.1-4.23.29 0 3.05 1.46 8.06 5.47 10.97Z" />
+            <path fill="#FF9D0B" d="M70.71 37a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5ZM24.21 37a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5ZM17.52 48c-1.62 0-3.06.66-4.07 1.87a5.97 5.97 0 0 0-1.33 3.76 7.1 7.1 0 0 0-1.94-.3c-1.55 0-2.95.59-3.94 1.66a5.8 5.8 0 0 0-.8 7 5.3 5.3 0 0 0-1.79 2.82c-.24.9-.48 2.8.8 4.74a5.22 5.22 0 0 0-.37 5.02c1.02 2.32 3.57 4.14 8.52 6.1 3.07 1.22 5.89 2 5.91 2.01a44.33 44.33 0 0 0 10.93 1.6c5.86 0 10.05-1.8 12.46-5.34 3.88-5.69 3.33-10.9-1.7-15.92-2.77-2.78-4.62-6.87-5-7.77-.78-2.66-2.84-5.62-6.25-5.62a5.7 5.7 0 0 0-4.6 2.46c-1-1.26-1.98-2.25-2.86-2.82A7.4 7.4 0 0 0 17.52 48Zm0 4c.51 0 1.14.22 1.82.65 2.14 1.36 6.25 8.43 7.76 11.18.5.92 1.37 1.31 2.14 1.31 1.55 0 2.75-1.53.15-3.48-3.92-2.93-2.55-7.72-.68-8.01.08-.02.17-.02.24-.02 1.7 0 2.45 2.93 2.45 2.93s2.2 5.52 5.98 9.3c3.77 3.77 3.97 6.8 1.22 10.83-1.88 2.75-5.47 3.58-9.16 3.58-3.81 0-7.73-.9-9.92-1.46-.11-.03-13.45-3.8-11.76-7 .28-.54.75-.76 1.34-.76 2.38 0 6.7 3.54 8.57 3.54.41 0 .7-.17.83-.6.79-2.85-12.06-4.05-10.98-8.17.2-.73.71-1.02 1.44-1.02 3.14 0 10.2 5.53 11.68 5.53.11 0 .2-.03.24-.1.74-1.2.33-2.04-4.9-5.2-5.21-3.16-8.88-5.06-6.8-7.33.24-.26.58-.38 1-.38 3.17 0 10.66 6.82 10.66 6.82s2.02 2.1 3.25 2.1c.28 0 .52-.1.68-.38.86-1.46-8.06-8.22-8.56-11.01-.34-1.9.24-2.85 1.31-2.85Z" />
+            <path fill="#FFD21E" d="M38.6 76.69c2.75-4.04 2.55-7.07-1.22-10.84-3.78-3.77-5.98-9.3-5.98-9.3s-.82-3.2-2.69-2.9c-1.87.3-3.24 5.08.68 8.01 3.91 2.93-.78 4.92-2.29 2.17-1.5-2.75-5.62-9.82-7.76-11.18-2.13-1.35-3.63-.6-3.13 2.2.5 2.79 9.43 9.55 8.56 11-.87 1.47-3.93-1.71-3.93-1.71s-9.57-8.71-11.66-6.44c-2.08 2.27 1.59 4.17 6.8 7.33 5.23 3.16 5.64 4 4.9 5.2-.75 1.2-12.28-8.53-13.36-4.4-1.08 4.11 11.77 5.3 10.98 8.15-.8 2.85-9.06-5.38-10.74-2.18-1.7 3.21 11.65 6.98 11.76 7.01 4.3 1.12 15.25 3.49 19.08-2.12Z" />
+            <path fill="#FF9D0B" d="M77.4 48c1.62 0 3.07.66 4.07 1.87a5.97 5.97 0 0 1 1.33 3.76 7.1 7.1 0 0 1 1.95-.3c1.55 0 2.95.59 3.94 1.66a5.8 5.8 0 0 1 .8 7 5.3 5.3 0 0 1 1.78 2.82c.24.9.48 2.8-.8 4.74a5.22 5.22 0 0 1 .37 5.02c-1.02 2.32-3.57 4.14-8.51 6.1-3.08 1.22-5.9 2-5.92 2.01a44.33 44.33 0 0 1-10.93 1.6c-5.86 0-10.05-1.8-12.46-5.34-3.88-5.69-3.33-10.9 1.7-15.92 2.78-2.78 4.63-6.87 5.01-7.77.78-2.66 2.83-5.62 6.24-5.62a5.7 5.7 0 0 1 4.6 2.46c1-1.26 1.98-2.25 2.87-2.82A7.4 7.4 0 0 1 77.4 48Zm0 4c-.51 0-1.13.22-1.82.65-2.13 1.36-6.25 8.43-7.76 11.18a2.43 2.43 0 0 1-2.14 1.31c-1.54 0-2.75-1.53-.14-3.48 3.91-2.93 2.54-7.72.67-8.01a1.54 1.54 0 0 0-.24-.02c-1.7 0-2.45 2.93-2.45 2.93s-2.2 5.52-5.97 9.3c-3.78 3.77-3.98 6.8-1.22 10.83 1.87 2.75 5.47 3.58 9.15 3.58 3.82 0 7.73-.9 9.93-1.46.1-.03 13.45-3.8 11.76-7-.29-.54-.75-.76-1.34-.76-2.38 0-6.71 3.54-8.57 3.54-.42 0-.71-.17-.83-.6-.8-2.85 12.05-4.05 10.97-8.17-.19-.73-.7-1.02-1.44-1.02-3.14 0-10.2 5.53-11.68 5.53-.1 0-.19-.03-.23-.1-.74-1.2-.34-2.04 4.88-5.2 5.23-3.16 8.9-5.06 6.8-7.33-.23-.26-.57-.38-.98-.38-3.18 0-10.67 6.82-10.67 6.82s-2.02 2.1-3.24 2.1a.74.74 0 0 1-.68-.38c-.87-1.46 8.05-8.22 8.55-11.01.34-1.9-.24-2.85-1.31-2.85Z" />
+            <path fill="#FFD21E" d="M56.33 76.69c-2.75-4.04-2.56-7.07 1.22-10.84 3.77-3.77 5.97-9.3 5.97-9.3s.82-3.2 2.7-2.9c1.86.3 3.23 5.08-.68 8.01-3.92 2.93.78 4.92 2.28 2.17 1.51-2.75 5.63-9.82 7.76-11.18 2.13-1.35 3.64-.6 3.13 2.2-.5 2.79-9.42 9.55-8.55 11 .86 1.47 3.92-1.71 3.92-1.71s9.58-8.71 11.66-6.44c2.08 2.27-1.58 4.17-6.8 7.33-5.23 3.16-5.63 4-4.9 5.2.75 1.2 12.28-8.53 13.36-4.4 1.08 4.11-11.76 5.3-10.97 8.15.8 2.85 9.05-5.38 10.74-2.18 1.69 3.21-11.65 6.98-11.76 7.01-4.31 1.12-15.26 3.49-19.08-2.12Z" />
+          </svg>
+          Dataset [Coming Soon]
+        </a>
+        <a class="btn btn--ghost" href="#cite">
+          <svg viewBox="0 0 24 24" class="btn__ic" aria-hidden="true"><path d="M7 7h7M7 11h10M7 15h5" /><rect x="3" y="3" width="18" height="18" rx="2" /></svg>
+          BibTeX
+        </a>
+      </div>
+
+      <!-- Teaser figure slot (Fig. 1) -->
+      <figure class="fig fig--teaser reveal">
+        <img class="fig__img" src="assets/teaser.png" alt="Teaser: semantically consistent 3D keypoints transferred across different instances of a category."
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="fig__slot" style="display:none">
+          <div class="fig__slot-tag">FIG · TEASER</div>
+          <div class="fig__slot-name">drop <code>assets/teaser.png</code> &nbsp;·&nbsp; <code>.gif</code> welcome</div>
+          <div class="fig__slot-sub">Matching-colored 3D keypoints across instances despite large shape variation</div>
+        </div>
+        <figcaption>
+          <span class="figcaption__lab">Fig. 1</span>
+          We predict semantically consistent 3D keypoint locations across instances of a category from a single RGB-D image. Matching colors denote corresponding areas.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ░░ OVERVIEW / STATS ░░ -->
+  <section class="strip" id="overview">
+    <div class="strip__tldr reveal">
+      <span class="tag">TL;DR</span>
+      <p>
+        We define <strong>monocular category-level 3D correspondence in camera space</strong>,
+        release <strong>HouseCorr3D</strong> to benchmark it, and propose <strong>Morpheus</strong>,
+        a morphable-prior model that sets a new state of the art — <em>without</em> any
+        correspondence supervision.
+      </p>
+    </div>
+
+    <dl class="stats" aria-label="Dataset at a glance">
+      <div class="stat reveal">
+        <dt class="stat__num"><span data-count="178" data-suffix="k">0</span></dt>
+        <dd class="stat__lab">RGB-D image pairs</dd>
+      </div>
+      <div class="stat reveal">
+        <dt class="stat__num"><span data-count="50">0</span></dt>
+        <dd class="stat__lab">household categories</dd>
+      </div>
+      <div class="stat reveal">
+        <dt class="stat__num"><span data-count="280">0</span></dt>
+        <dd class="stat__lab">unique instances</dd>
+      </div>
+      <div class="stat reveal">
+        <dt class="stat__num"><span data-count="2329">0</span></dt>
+        <dd class="stat__lab">3D keypoint annotations</dd>
+      </div>
+    </dl>
+
+    <details class="abstract reveal">
+      <summary><span class="abstract__chev" aria-hidden="true"></span> Read the abstract</summary>
+      <p>
+        Understanding 3D objects from images is fundamental to robotics and AR/VR. While recent work
+        has progressed in category-level pose estimation, current representations fail to capture the
+        fine-grained semantics needed for reasoning about object parts, functions, and interactions.
+        We study <em>category-level 3D correspondence in camera space</em> — predicting, from a single
+        image, 3D locations that remain consistent across instances within a category — and show it can
+        emerge without explicit correspondence supervision by learning a shared morphable object prior.
+        We introduce <strong>HouseCorr3D</strong>, the first large-scale benchmark for monocular
+        category-level 3D correspondence, with 178k images across 50 household object categories, 280
+        unique instances, and 3D keypoint annotations directly on CAD models — including amodal
+        correspondence labels for occluded regions and explicit symmetry annotations. We further propose
+        <strong>Morpheus</strong>, which learns morphable category-level shape priors by disentangling
+        canonical shape, deformation, and object pose; semantically meaningful 3D correspondences in
+        camera space then emerge implicitly, setting a new state of the art on HouseCorr3D.
+      </p>
+    </details>
+  </section>
+
+  <!-- ░░ THE TASK ░░ -->
+  <section class="section" id="task">
+    <div class="section__head reveal">
+      <span class="section__idx">01</span>
+      <div>
+        <h2 class="section__title">The Task — <span class="grad">Monocular category-level 3D correspondence in camera space</span></h2>
+      </div>
+    </div>
+
+    <div class="task-grid">
+      <div class="prose reveal">
+        <p>
+          Traditional 3D understanding stops at pose, detection, or reconstruction — it never says
+          <em>which point</em> on one object is the same functional part as on another. 2D semantic
+          correspondence tries, but is trapped by viewpoint, occlusion, and symmetry.
+        </p>
+        <p>
+          We move the question into <strong>3D camera space</strong>: given a 3D query point on one
+          instance, return the 3D point on another instance that represents the same semantic part —
+          resolving ambiguities that image-space matching cannot.
+        </p>
+
+        <figure class="def reveal">
+          <figcaption class="def__cap">Problem definition</figcaption>
+          <p class="def__body">
+            Given query &amp; target RGB-D images
+            <span class="m">I<sup>q</sup></span>, <span class="m">I<sup>t</sup></span> of the same
+            category and a query 3D point
+            <span class="m">x<sup>q</sup> &#8712; &#8477;<sup>3</sup></span> in the camera space of
+            <span class="m">I<sup>q</sup></span>, predict
+            <span class="m">x<sup>t</sup> &#8712; &#8477;<sup>3</sup></span> in the camera space of
+            <span class="m">I<sup>t</sup></span> at the same semantic point.
+          </p>
+          <p class="def__map"><span class="m">f : (x<sup>q</sup>, I<sup>q</sup>, I<sup>t</sup>) &#8594; x<sup>t</sup></span></p>
+        </figure>
+      </div>
+
+      <ul class="why reveal" aria-label="Why camera space">
+        <li class="why__item">
+          <span class="why__ic" data-accent="cyan">◍</span>
+          <h3>Amodal correspondences</h3>
+          <p>Evaluate parts that are <em>occluded</em> or off-screen — impossible for any 2D matcher.</p>
+        </li>
+        <li class="why__item">
+          <span class="why__ic" data-accent="amber">⟳</span>
+          <h3>Explicit symmetry</h3>
+          <p>Whole orbits of rotation-equivalent points count as valid.</p>
+        </li>
+        <li class="why__item">
+          <span class="why__ic" data-accent="magenta">⧈</span>
+          <h3>3D over 2D reasoning</h3>
+          <p>Camera space removes the ambiguous center &amp; scale of object-centric spaces.</p>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ░ Interactive demo — commented out for now ░ -->
+    <!--
+    <div class="demo reveal" id="demo">
+      <div class="demo__bar">
+        <div class="demo__title">
+          <span class="demo__live">● LIVE</span>
+          Interactive correspondence
+        </div>
+        <div class="demo__controls">
+          <label class="seg" for="demo-category">Category</label>
+          <select id="demo-category" class="select" aria-label="Demo category"></select>
+          <button id="demo-amodal" class="toggle" aria-pressed="false">
+            <span class="toggle__box"></span> Show amodal (occluded)
+          </button>
+          <button id="demo-cycle" class="btn btn--mini">Cycle all ▶</button>
+        </div>
+      </div>
+
+      <div class="demo__stage">
+        <svg id="demo-svg" viewBox="0 0 800 420" role="img"
+             aria-label="Two instances of a category with matching 3D keypoints; select a keypoint to see its correspondence.">
+        </svg>
+        <div class="demo__panels" aria-hidden="true">
+          <span>query · I<sup>q</sup></span>
+          <span>target · I<sup>t</sup></span>
+        </div>
+      </div>
+
+      <p class="demo__hint">
+        <span id="demo-readout">Select a keypoint on the <strong>query</strong> (left) to transfer it onto the <strong>target</strong>.</span>
+        <span class="demo__note">Stylized placeholder objects — swap in real image pairs via <code>assets/demo/pairs.json</code>.</span>
+      </p>
+    </div>
+    -->
+
+    <!-- Task setup figure slot (Fig. 3a) -->
+    <figure class="fig reveal">
+      <img class="fig__img" src="assets/task.png" alt="Task setup: query point projected to deformed query mesh, transferred via barycentric coordinates to the target mesh."
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="fig__slot" style="display:none">
+        <div class="fig__slot-tag">FIG · TASK SETUP</div>
+        <div class="fig__slot-name">drop <code>assets/task.png</code></div>
+        <div class="fig__slot-sub">Fig. 3a — camera-space correspondence</div>
+      </div>
+      <figcaption><span class="figcaption__lab">Fig. 3a</span> Given a query point <span class="m">x<sup>q</sup> &#8712; &#8477;<sup>3</sup></span>, we project it onto the deformed query mesh <span class="m">M<sup>q</sup></span> and encode its location as barycentric coordinates. Since query and target instances share the same mesh topology, these coordinates transfer directly to <span class="m">M<sup>t</sup></span>, yielding the corresponding point <span class="m">x<sup>t</sup> &#8712; &#8477;<sup>3</sup></span>.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ░░ THE BENCHMARK ░░ -->
+  <section class="section section--alt" id="benchmark">
+    <div class="section__head reveal">
+      <span class="section__idx">02</span>
+      <div>
+        <h2 class="section__title">The Benchmark — <span class="grad">HouseCorr3D</span></h2>
+        <p class="section__sub">The first large-scale benchmark for category-level 3D correspondence from monocular images</p>
+      </div>
+    </div>
+
+    <div class="bench-intro prose reveal">
+      <p>
+        Built on the photorealistic synthetic subset of <strong>Omni6DPose</strong>, HouseCorr3D crops
+        <strong>178k</strong> test images (and 2.6M for training) across <strong>50</strong> everyday
+        categories. Keypoints are annotated <em>once</em> on CAD meshes, then projected through
+        ground-truth poses into every view — yielding consistent, amodal-aware labels at scale.
+        It is a <strong>test-only</strong> benchmark: keypoints are used exclusively for evaluation.
+      </p>
+    </div>
+
+    <!-- Category families -->
+     <!-- 
+    <div class="cats reveal" aria-label="Example categories">
+      <div class="cats__fam">
+        <span class="cats__lab">Household</span>
+        <span class="chip">mug</span><span class="chip">bottle</span><span class="chip">remote</span><span class="chip">hairdryer</span>
+      </div>
+      <div class="cats__fam">
+        <span class="cats__lab">Food</span>
+        <span class="chip">fruit</span><span class="chip">vegetable</span>
+      </div>
+      <div class="cats__fam">
+        <span class="cats__lab">Toys</span>
+        <span class="chip">car</span><span class="chip">plane</span><span class="chip">animal</span>
+      </div>
+      <div class="cats__fam">
+        <span class="cats__lab">Accessories</span>
+        <span class="chip">backpack</span><span class="chip">shoe</span><span class="chip">wallet</span>
+        <span class="chip chip--more">+38 more</span>
+      </div>
+    </div>
+    --> 
+
+    <!-- Dataset overview figure slot (Fig. 2) -->
+    <figure class="fig reveal">
+      <img class="fig__img" src="assets/dataset.png" alt="Dataset overview: up to 19 semantic 3D keypoints annotated on CAD meshes across categories, shown for several instances each."
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="fig__slot" style="display:none">
+        <div class="fig__slot-tag">FIG · DATASET OVERVIEW</div>
+        <div class="fig__slot-name">drop <code>assets/dataset.png</code></div>
+        <div class="fig__slot-sub">Fig. 2 — up to 19 keypoints per category, consistent across 5–13 instances each</div>
+      </div>
+      <figcaption><span class="figcaption__lab">Fig. 2</span> Keypoints are semantically consistent and shared across all instances within each category.</figcaption>
+    </figure>
+
+    <!-- Feature callouts -->
+    <ul class="features reveal" aria-label="What makes HouseCorr3D different">
+      <li class="feature">
+        <h3><span class="feature__k">A</span> Amodal labels</h3>
+        <p>Correspondences for parts that are occluded or out of frame — inferring the full 3D extent of objects.</p>
+      </li>
+      <li class="feature">
+        <h3><span class="feature__k">S</span> Explicit symmetry</h3>
+        <p>Discrete &amp; continuous symmetries handled by treating the full rotation orbit as valid matches.</p>
+      </li>
+      <li class="feature">
+        <h3><span class="feature__k">M</span> Mesh annotation</h3>
+        <p>One annotation on a CAD mesh scales to 178k pairs through ground-truth pose projection.</p>
+      </li>
+      <li class="feature">
+        <h3><span class="feature__k">T</span> Test-only</h3>
+        <p>Synthetic but high-quality: exact-by-construction labels, modeled transparency for depth.</p>
+      </li>
+    </ul>
+
+    <!-- Comparison table (Table 1) -->
+    <div class="tablewrap reveal">
+      <div class="tablewrap__head">
+        <h3>Table 1 · Comparison to existing correspondence datasets</h3>
+        <p>Prior benchmarks evaluate in 2D camera or 3D object space. HouseCorr3D is the first to target <strong>3D camera space</strong>.</p>
+      </div>
+      <div class="tablescroll">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th scope="col">Dataset</th>
+              <th scope="col">Pairs</th>
+              <th scope="col">Classes</th>
+              <th scope="col">Input</th>
+              <th scope="col">Eval. space</th>
+              <th scope="col">Symmetry</th>
+              <th scope="col">Occlusion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Pascal-Parts</th><td>4k</td><td>20</td><td>2D</td><td>2D camera</td><td class="x">✗</td><td class="x">✗</td></tr>
+            <tr><th scope="row">PF-Pascal</th><td>2k</td><td>20</td><td>2D</td><td>2D camera</td><td class="x">✗</td><td class="x">✗</td></tr>
+            <tr><th scope="row">SPair-71k</th><td>71k</td><td>18</td><td>2D</td><td>2D camera</td><td class="x">✗</td><td class="ok">✓</td></tr>
+            <tr><th scope="row">KeypointNet</th><td>—</td><td>16</td><td>3D</td><td>3D object</td><td class="x">✗</td><td class="x">✗</td></tr>
+            <tr><th scope="row">CPNet</th><td>—</td><td>25</td><td>3D</td><td>3D object</td><td class="ok">✓</td><td class="x">✗</td></tr>
+            <tr><th scope="row">DenseCorr3D</th><td>—</td><td>23</td><td>3D</td><td>3D object</td><td class="ok">✓</td><td class="x">✗</td></tr>
+            <tr class="tbl__hl"><th scope="row">HouseCorr3D <span class="ours">ours</span></th><td><strong>178k</strong></td><td><strong>50</strong></td><td><strong>2.5D</strong></td><td><strong>3D camera</strong></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Annotation protocol + metric -->
+    <div class="bench-bottom">
+      <div class="protocol reveal">
+        <h3 class="mini-h">Annotation protocol</h3>
+        <ol class="timeline">
+          <li><span class="timeline__t">2 annotators</span> independently mark keypoints on each mesh in an interactive 3D tool.</li>
+          <li><span class="timeline__t">Auto-merge</span> via mutual nearest neighbours (5% bbox-diagonal threshold) + consistency.</li>
+          <li><span class="timeline__t">Manual merge</span> resolves undecided keypoints side-by-side across instances.</li>
+          <li><span class="timeline__t">~65 h → 2329 keypoints</span> (2–19 per category) projected into all 178k views.</li>
+        </ol>
+      </div>
+      <div class="metric reveal">
+        <h3 class="mini-h">Evaluation metric</h3>
+        <p class="metric__name">PCK@0.1</p>
+        <p class="metric__formula"><span class="m">d(x&#770;<sup>t</sup>, x<sup>t</sup>) &lt; 0.1 · max(h, w, d)</span></p>
+        <p class="metric__exp">
+          A prediction is correct if within 10% of the largest side of the object's 3D bounding box.
+          We report <strong>2D</strong>, <strong>3D&nbsp;modal</strong> (both points visible), and
+          <strong>3D&nbsp;amodal</strong> (one point occluded) settings.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ THE METHOD ░░ -->
+  <section class="section" id="method">
+    <div class="section__head reveal">
+      <span class="section__idx">03</span>
+      <div>
+        <h2 class="section__title">The Method — <span class="grad-warm">Morpheus</span></h2>
+        <p class="section__sub">Morphable category priors, so 3D correspondence <em>emerges</em></p>
+      </div>
+    </div>
+
+    <div class="prose prose--wide reveal">
+      <p>
+        Morpheus represents every object in a category as an <strong>identity-preserving deformation
+        of one shared template mesh</strong>. Because template vertices keep their identity while the
+        mesh morphs, correspondence becomes free: points tied to the same template vertex are the same
+        semantic part across instances. 3D correspondence reduces to predicting a <em>pose</em> and a
+        <em>deformation</em>.
+      </p>
+    </div>
+
+    <!-- Mesh-transfer diagram -->
+     <!-- 
+    <div class="transfer reveal" aria-label="Correspondence via barycentric mesh transfer">
+      <div class="transfer__step">
+        <span class="transfer__n">1</span>
+        <h4>Query point</h4>
+        <p><span class="m">x<sup>q</sup></span> in camera space</p>
+      </div>
+      <span class="transfer__arr">→</span>
+      <div class="transfer__step">
+        <span class="transfer__n">2</span>
+        <h4>Project to query mesh</h4>
+        <p>nearest surface point</p>
+      </div>
+      <span class="transfer__arr">→</span>
+      <div class="transfer__step">
+        <span class="transfer__n">3</span>
+        <h4>Barycentric coords</h4>
+        <p>a category-level surface ID</p>
+      </div>
+      <span class="transfer__arr">→</span>
+      <div class="transfer__step">
+        <span class="transfer__n">4</span>
+        <h4>Transfer to target</h4>
+        <p>shared topology → <span class="m">x<sup>t</sup></span></p>
+      </div>
+    </div> -->
+
+    <!-- Pipeline figure slot (Fig. 3b) -->
+    <figure class="fig reveal">
+      <img class="fig__img" src="assets/pipeline.png" alt="Morpheus pipeline: deformation encoder predicts a latent code that drives a decoder to adapt the category prior; the deformed mesh is placed in camera space using a predicted 6D pose."
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="fig__slot" style="display:none">
+        <div class="fig__slot-tag">FIG · PIPELINE</div>
+        <div class="fig__slot-name">drop <code>assets/pipeline.png</code></div>
+        <div class="fig__slot-sub">Fig. 3b — encoder ψ → latent l → decoder ϕ → deformed mesh, posed in camera space</div>
+      </div>
+      <figcaption><span class="figcaption__lab">Fig. 3b</span> From an RGB-D image, the deformation encoder predicts a latent code that adapts the category shape prior; the deformed mesh is posed in camera space.</figcaption>
+    </figure>
+
+    <!-- Component cards -->
+    <div class="components reveal">
+      <article class="comp">
+        <span class="comp__tag">PRIOR</span>
+        <h3>3D morphable prior</h3>
+        <p>A canonical category shape as a signed distance field, turned into a mesh via
+          <strong>Differentiable Marching Tetrahedra</strong> — a hybrid volumetric-mesh
+          representation that is stable to optimize.</p>
+      </article>
+      <article class="comp">
+        <span class="comp__tag">DEFORM</span>
+        <h3>Instance deformation</h3>
+        <p>A <strong>DINOv2</strong> encoder maps the image to a latent code that drives a
+          per-vertex affine field
+          <span class="m">&#981;<sub>a</sub>(v,l) = &#945;(v,l)&#8857;v + &#948;(v,l)</span>,
+          morphing the template to the observed instance.</p>
+      </article>
+      <article class="comp">
+        <span class="comp__tag">POSE</span>
+        <h3>6D pose</h3>
+        <p>A pretrained <strong>pose-diffusion</strong> network places the deformed mesh into camera
+          space, disentangling pose from shape and canonicalization.</p>
+      </article>
+    </div>
+
+    <!-- Training objectives -->
+    <div class="train reveal">
+      <h3 class="mini-h">Training objectives <span class="train__sub">— geometric supervision only</span></h3>
+      <div class="train__grid">
+        <div class="obj"><span class="obj__k">2D</span><div><h4>Amodal mask</h4><p>Pixel-wise MSE + distance-transform overlap against ground-truth <em>amodal</em> masks.</p></div></div>
+        <div class="obj"><span class="obj__k">3D</span><div><h4>Chamfer</h4><p>Aligns deformed mesh vertices to ground-truth geometry for accurate 3D shape.</p></div></div>
+        <div class="obj"><span class="obj__k">REG</span><div><h4>Regularizers</h4><p>Eikonal (SDF), small-deformation ℓ₂, and edge-based smoothness keep meshes clean.</p></div></div>
+      </div>
+      <div class="callout">
+        <span class="callout__bolt">⚡</span>
+        <p><strong>No explicit correspondence supervision.</strong> Semantic alignment emerges because
+          every instance must explain its image through the <em>same</em> canonical template.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ RESULTS ░░ -->
+  <section class="section section--alt" id="results">
+    <div class="section__head reveal">
+      <span class="section__idx">04</span>
+      <div>
+        <h2 class="section__title">Results</h2>
+        <p class="section__sub">A new state of the art on 2D, 3D-modal, and 3D-amodal correspondence</p>
+      </div>
+    </div>
+
+    <!-- Table 2 -->
+    <div class="tablewrap reveal">
+      <div class="tablewrap__head">
+        <h3>Table 2 · PCK@0.1 on HouseCorr3D <span class="tablewrap__unit">(mean over categories, %)</span></h3>
+        <p>Morpheus outperforms every 2D and 3D baseline. <span class="dag">★</span> 2D predictions lifted to 3D via depth — amodal is not applicable.</p>
+      </div>
+      <div class="tablescroll">
+        <table class="tbl tbl--results">
+          <thead>
+            <tr>
+              <th scope="col">Method</th>
+              <th scope="col">2D</th>
+              <th scope="col">3D Modal</th>
+              <th scope="col">3D Amodal</th>
+              <th scope="col">3D (M+A)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">DINOv2 <span class="dag">★</span></th><td>22.9</td><td>24.4</td><td class="na">n/a</td><td class="na">n/a</td></tr>
+            <tr><th scope="row">MagicPony<sub>2D</sub> <span class="dag">★</span></th><td>15.7</td><td>14.0</td><td class="na">n/a</td><td class="na">n/a</td></tr>
+            <tr><th scope="row">NOCS <span class="dag">★</span></th><td>26.7</td><td>26.4</td><td class="na">n/a</td><td class="na">n/a</td></tr>
+            <tr><th scope="row">GenPose++</th><td>36.3</td><td>37.0</td><td>32.9</td><td>34.3</td></tr>
+            <tr><th scope="row">MagicPony + GP++</th><td>10.7</td><td>7.5</td><td>7.1</td><td>7.1</td></tr>
+            <tr><th scope="row">Morpheus <span class="muted">w/o Def.</span></th><td>39.1</td><td>40.2</td><td>37.8</td><td>38.4</td></tr>
+            <tr class="tbl__hl"><th scope="row">Morpheus <span class="ours">ours</span></th><td><b>41.2</b></td><td><b>43.7</b></td><td><b>40.8</b></td><td><b>41.5</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Qualitative figure (Fig. 4) — simple image -->
+    <figure class="fig reveal">
+      <img class="fig__img" src="assets/qualitative.png" alt="Qualitative correspondence results: Morpheus predictions across several categories."
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+      <div class="fig__slot" style="display:none">
+        <div class="fig__slot-tag">FIG · QUALITATIVE</div>
+        <div class="fig__slot-name">drop <code>assets/qualitative.png</code></div>
+        <div class="fig__slot-sub">Fig. 4 — qualitative correspondence results</div>
+      </div>
+      <figcaption><span class="figcaption__lab">Fig. 4</span> Qualitative comparison. DINOv2 confuses parts; GenPose++ predicts points off-object; MagicPony is plausible in 2D but wrong in 3D. Morpheus stays consistent across viewpoints.</figcaption>
+    </figure>
+
+    <!-- Qualitative comparison slider (Fig. 4) — kept for later use -->
+    <!--
+    <figure class="fig reveal">
+      <div class="compare" id="compare" data-has-images="false">
+        <div class="compare__pane compare__pane--a">
+          <img src="assets/qualitative_baselines.png" alt="Baseline correspondences (DINOv2 / GenPose++ / MagicPony)."
+               onerror="this.closest('.compare').dataset.hasImages='false';this.style.display='none';" />
+          <span class="compare__label compare__label--a">baselines</span>
+        </div>
+        <div class="compare__pane compare__pane--b">
+          <img src="assets/qualitative_morpheus.png" alt="Morpheus correspondences."
+               onerror="this.closest('.compare').dataset.hasImages='false';this.style.display='none';" />
+          <span class="compare__label compare__label--b">Morpheus</span>
+        </div>
+        <div class="compare__slot">
+          <div class="fig__slot-tag">FIG · QUALITATIVE (before / after)</div>
+          <div class="fig__slot-name">drop <code>assets/qualitative_baselines.png</code> &amp; <code>assets/qualitative_morpheus.png</code></div>
+          <div class="fig__slot-sub">Fig. 4 — the slider wipes between baselines and Morpheus once both images exist</div>
+        </div>
+        <input class="compare__range" type="range" min="0" max="100" value="50" aria-label="Compare baselines vs Morpheus" />
+        <div class="compare__handle" aria-hidden="true"><span></span></div>
+      </div>
+      <figcaption><span class="figcaption__lab">Fig. 4</span> Qualitative comparison. DINOv2 confuses parts; GenPose++ predicts points off-object; MagicPony is plausible in 2D but wrong in 3D. Morpheus stays consistent across viewpoints.</figcaption>
+    </figure>
+    -->
+
+    <!-- Secondary results -->
+    <div class="results-bottom">
+      <div class="tablewrap tablewrap--small reveal">
+        <div class="tablewrap__head">
+          <h3>Table 3 · Real-world (ROPE subset)</h3>
+          <p>5 classes · 24 instances · 134 keypoints. Morpheus generalizes to real data.</p>
+        </div>
+        <div class="tablescroll">
+          <table class="tbl">
+            <thead><tr><th scope="col">Method</th><th scope="col">2D@0.1</th><th scope="col">3D@0.1</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">MagicPony<sub>2D</sub></th><td>16.8</td><td class="na">n/a</td></tr>
+              <tr><th scope="row">GenPose++</th><td>37.0</td><td>25.1</td></tr>
+              <tr><th scope="row">MagicPony + GP++</th><td>12.6</td><td>7.3</td></tr>
+              <tr class="tbl__hl"><th scope="row">Morpheus <span class="ours">ours</span></th><td><b>44.7</b></td><td><b>34.8</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="takeaways reveal">
+        <h3 class="mini-h">Why it wins</h3>
+        <ul class="takeaways__list">
+          <li><strong>Occlusions:</strong> only ~2.9% PCK drop from modal → amodal; 2D matchers can't evaluate amodal at all.</li>
+          <li><strong>Disentangled pose &amp; shape:</strong> avoids MagicPony's failure of compensating rotation with deformation.</li>
+          <li><strong>More challenging than SPair-71k:</strong> DINOv2 performs noticeably worse on HouseCorr3D, where the categories are more diverse.</li>
+        </ul>
+        <details class="limits">
+          <summary>Limitations</summary>
+          <p>Fixed template topology can't model large topological change; correspondence is sensitive to pose error; smoothness regularization can over-smooth thin structures.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ CITE ░░ -->
+  <section class="section" id="cite">
+    <div class="section__head reveal">
+      <span class="section__idx">05</span>
+      <div>
+        <h2 class="section__title">Citation</h2>
+        <p class="section__sub">If you find HouseCorr3D or Morpheus useful, please cite</p>
+      </div>
+    </div>
+
+    <div class="cite reveal">
+      <button class="cite__copy" id="copy-bibtex" aria-label="Copy BibTeX">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>
+        <span class="cite__copy-label">Copy</span>
+      </button>
+      <pre class="cite__pre"><code id="bibtex">@misc{sommer2026categorylevel3dcorrespondencecamera,
+      title  = {Category-Level 3D Correspondence in Camera Space via Morphable Object Priors},
+      author = {Leonhard Sommer and Artur Jesslen and Basavaraj Sunagad and Adam Kortylewski},
+      year   = {2026},
+      eprint = {2605.28257},
+      archivePrefix = {arXiv},
+      primaryClass  = {cs.CV},
+      url    = {https://arxiv.org/abs/2605.28257},
+}</code></pre>
+    </div>
+  </section>
+</main>
+
+<!-- ░░ FOOTER ░░ -->
+<footer class="footer">
+  <div class="footer__top">
+    <div class="footer__brand">
+      <svg class="nav__mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path class="mk-stem" d="M8 7V25 M24 7V25" />
+        <path class="mk-link mk-link-a" d="M10.5 16H16.1" />
+        <path class="mk-link mk-link-b" d="M15.9 16H21.5" />
+        <circle cx="8" cy="7" r="2.1" class="mk-a" />
+        <circle cx="8" cy="16" r="2.1" class="mk-a" />
+        <circle cx="8" cy="25" r="2.1" class="mk-a" />
+        <circle cx="24" cy="7" r="2.1" class="mk-b" />
+        <circle cx="24" cy="16" r="2.1" class="mk-b" />
+        <circle cx="24" cy="25" r="2.1" class="mk-b" />
+      </svg>
+      <span class="nav__word">HouseCorr<span class="nav__sup">3D</span></span>
+    </div>
+    <nav class="footer__links" aria-label="Footer">
+      <a href="https://arxiv.org/abs/2605.28257" target="_blank" rel="noopener">arXiv</a>
+      <a href="https://github.com/GenIntel/HouseCorr3D" target="_blank" rel="noopener">Code</a>
+      <a href="https://github.com/GenIntel/HouseCorr3D" target="_blank" rel="noopener">Dataset</a>
+      <a href="#cite">BibTeX</a>
+    </nav>
+  </div>
+  <p class="footer__affil">University of Freiburg · CISPA Helmholtz Center for Information Security</p>
+  <p class="footer__ack">
+    Supported by the Emmy Noether Research Group (DFG 468670075) and DFG grant 539134284, via EFRE
+    (FEIH_2698644) and the state of Baden-Württemberg.
+  </p>
+  <p class="footer__fine">© 2026 · Built for the HouseCorr3D project page.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

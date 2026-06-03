@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Mug",
+    "category": "mug",
+    "query": {
+      "image": "assets/demo/mug_q.png",
+      "w": 512,
+      "h": 512,
+      "keypoints": [
+        { "id": "rim_front",  "label": "front rim", "color": "#35e0d4", "x": 240, "y": 120 },
+        { "id": "lip_right",  "label": "right lip", "color": "#ff4d97", "x": 330, "y": 118 },
+        { "id": "handle",     "label": "handle",    "color": "#9b8cff", "x": 410, "y": 250 },
+        { "id": "base_front", "label": "base",      "color": "#6ee7a8", "x": 250, "y": 430 },
+        { "id": "rim_back",   "label": "back rim",  "color": "#f9776a", "x": 250, "y": 96, "amodal": true }
+      ]
+    },
+    "target": {
+      "image": "assets/demo/mug_t.png",
+      "w": 512,
+      "h": 512,
+      "keypoints": [
+        { "id": "rim_front",  "label": "front rim", "color": "#35e0d4", "x": 300, "y": 150 },
+        { "id": "lip_right",  "label": "right lip", "color": "#ff4d97", "x": 400, "y": 148 },
+        { "id": "handle",     "label": "handle",    "color": "#9b8cff", "x": 470, "y": 300 },
+        { "id": "base_front", "label": "base",      "color": "#6ee7a8", "x": 310, "y": 460 },
+        { "id": "rim_back",   "label": "back rim",  "color": "#f9776a", "x": 305, "y": 120, "amodal": true }
+      ]
+    }
+  }
+]
